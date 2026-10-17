@@ -8,6 +8,8 @@ on:
     paths:
       - '**.swift'
       - 'iPhoneStarter.xcodeproj/**'
+      - 'iPhoneStarter/Assets.xcassets/**'
+      - 'iPhoneStarter/Branding/**'
       - '.github/workflows/build-ipa.yml'
 
 permissions:
@@ -19,6 +21,27 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+
+      - name: Prepare app icon from the 1024x1024 source PNG
+        run: |
+          set -euo pipefail
+          SOURCE_ICON="iPhoneStarter/Branding/ShareDropIcon-1024x1024.png"
+          APP_ICON="iPhoneStarter/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+          test -f "$SOURCE_ICON"
+          test -d "$(dirname "$APP_ICON")"
+          WIDTH="$(sips -g pixelWidth "$SOURCE_ICON" | awk '/pixelWidth/ {print $2}')"
+          HEIGHT="$(sips -g pixelHeight "$SOURCE_ICON" | awk '/pixelHeight/ {print $2}')"
+          if [[ "$WIDTH" != "1024" || "$HEIGHT" != "1024" ]]; then
+            echo "Expected a 1024x1024 PNG at $SOURCE_ICON, got ${WIDTH}x${HEIGHT}."
+            exit 1
+          fi
+          # Use the supplied 1024x1024 artwork directly; no resizing is needed.
+          cp "$SOURCE_ICON" "$APP_ICON"
+          OUT_WIDTH="$(sips -g pixelWidth "$APP_ICON" | awk '/pixelWidth/ {print $2}')"
+          OUT_HEIGHT="$(sips -g pixelHeight "$APP_ICON" | awk '/pixelHeight/ {print $2}')"
+          test "$OUT_WIDTH" = "1024"
+          test "$OUT_HEIGHT" = "1024"
+          echo "Prepared app icon directly from ${WIDTH}x${HEIGHT} source artwork."
 
       - name: Show Xcode version
         run: xcodebuild -version

@@ -1,42 +1,55 @@
-# ShareDrop for iPhone — native SwiftUI
+# ShareDrop for iPhone — native SwiftUI (0.2.2, 1024px icon setup)
 
-ShareDrop is a native SwiftUI iOS app with a dark, custom Liquid Glass-inspired interface. The first iPhone milestone includes:
+ShareDrop is a native SwiftUI iOS app with a dark, custom Liquid Glass-inspired interface. This milestone includes:
 
-- A redesigned ShareDrop home screen and native Liquid Glass surfaces.
-- Native Files document picker for documents, PDFs, videos, archives, and other file types.
-- Native Photos picker for selecting up to 12 images at once.
+- Redesigned ShareDrop home screen and native Liquid Glass surfaces.
+- Native Files document picker and Photos picker.
 - Local staging of selected files inside the app's temporary directory.
-- A native iOS share sheet for choosing an available destination.
-- A lightweight Activity screen listing files prepared during the current app session.
+- Native iOS share sheet.
+- App Icon asset catalog wired into the Xcode project and cloud build.
 
-## Current limitation — read before testing
+## Add your 1024x1024 app icon
 
-This is the first ShareDrop iPhone UI and file-selection milestone. It does **not yet implement ShareDrop-specific nearby-device discovery or direct cross-platform transfer between the iPhone, Android, and Windows app**. For now, the final sharing action opens the iOS system share sheet. The next development milestone is to implement and test the actual device-to-device transfer protocol.
+Replace this exact file with your own **1024x1024 pixel PNG**:
 
-## Liquid Glass
+`iPhoneStarter/Branding/ShareDropIcon-1024x1024.png`
 
-The project targets iOS 26.0 or later and uses native SwiftUI `glassEffect` and glass button styles. The system controls and materials use Apple's native rendering, while custom surfaces keep a deliberately dark, blue-accented ShareDrop identity. See Apple's SwiftUI documentation for [`glassEffect`](https://developer.apple.com/documentation/swiftui/view/glasseffect(_:in:)).
+Keep the filename exactly `ShareDropIcon-1024x1024.png`. This is the source image used by the GitHub Actions workflow.
+
+The workflow verifies that the PNG is exactly 1024x1024, then copies it directly to the Xcode app icon asset:
+
+`iPhoneStarter/Assets.xcassets/AppIcon.appiconset/AppIcon.png`
+
+No resizing is performed. Do not rename or delete `Contents.json` in that folder; it tells Xcode which image is the app icon. You only need to replace the source PNG in `Branding`.
+
+For best App Store compatibility, use a square 1024x1024 PNG without a transparent background.
 
 ## Build the unsigned IPA from Windows
 
 The `.github/workflows/build-ipa.yml` workflow uses a GitHub-hosted macOS runner with Xcode. Xcode does not need to be installed on the Windows PC.
 
-1. Extract this project to a new folder, such as `E:\Documents\ShareDrop-iOS-0.2.0`.
-2. Copy its contents into the existing `TheRealRaphaelYT/iPhoneStarter` repository working copy, or replace the tracked files in a clean clone of that repository. Do not nest the project in another project folder.
+1. Replace `iPhoneStarter/Branding/ShareDropIcon-1024x1024.png` with your own 1024x1024 PNG, keeping the same filename.
+2. Copy these project files into the existing `TheRealRaphaelYT/iPhoneStarter` repository working copy (or replace the tracked files in a clean clone).
 3. Commit and push the changes to `main`.
 4. Open **Actions** in the GitHub repository and monitor **Build ShareDrop iOS IPA**.
 5. After a successful run, download the `ShareDrop-unsigned-IPA` artifact and extract the ZIP artifact to obtain `ShareDrop-unsigned.ipa`.
-6. The workflow creates an **unsigned** IPA. Use the existing signing/installation tool to sign it with the appropriate certificate and provisioning method.
+6. The workflow creates an **unsigned** IPA. Use your existing signing/installation tool to sign it with the appropriate certificate and provisioning method.
 
 ## Important project settings
 
 - Display name: `ShareDrop`
-- Xcode project/scheme name: `iPhoneStarter` (kept stable so the existing workflow and project structure continue to work)
-- Bundle identifier: `com.therealraphael.iphonestarter` (kept stable so this build can update the installed starter app when signing identity and installation tool allow it)
+- Xcode project/scheme name: `iPhoneStarter` (kept stable so the workflow and project structure continue to work)
+- Bundle identifier: `com.therealraphael.iphonestarter` (kept stable so this build can update the installed app if signing and installation method allow it)
 - Deployment target: iOS 26.0+
 - UI framework: SwiftUI
-- Build runner: GitHub Actions / macOS 26
+- App icon asset name: `AppIcon`
+- App icon source file: `iPhoneStarter/Branding/ShareDropIcon-1024x1024.png`
+- Build runner: GitHub Actions / macOS
 
-## Data handling in this milestone
+## Current transfer limitation
 
-Selected documents and photos are copied into the app's temporary directory before sharing. This version does not upload them to a ShareDrop server. The chosen destination in Apple's share sheet determines what happens next. Direct ShareDrop transfer, receiving mode, peer discovery, authentication, and persistent transfer history are not implemented yet.
+This is the iPhone UI and file-selection milestone. It does **not yet implement ShareDrop-specific nearby-device discovery or direct cross-platform transfer between iPhone, Android, and Windows**. The final sharing action uses the iOS system share sheet. Direct ShareDrop transfer and receiving mode are future development work.
+
+## Data handling
+
+Selected documents and photos are copied into the app's temporary directory before sharing. This version does not upload them to a ShareDrop server. The destination selected in Apple's share sheet determines what happens next. Direct transfer, peer discovery, authentication, and persistent transfer history are not implemented yet.
