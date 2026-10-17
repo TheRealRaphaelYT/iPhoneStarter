@@ -1,0 +1,59 @@
+name: Build iPhone Starter IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.swift'
+      - 'iPhoneStarter.xcodeproj/**'
+      - '.github/workflows/build-ipa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-ipa:
+    # macOS cloud runner with a recent Xcode/iOS SDK; no local Mac is needed.
+    runs-on: macos-26
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build iOS app (without Apple signing credentials)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project iPhoneStarter.xcodeproj \
+            -scheme iPhoneStarter \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/iPhoneStarter.app"
+          test -d "$APP_PATH"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/iPhoneStarter.app"
+          (cd "$RUNNER_TEMP/ipa" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/iPhoneStarter-unsigned.ipa" Payload)
+          test -s "$GITHUB_WORKSPACE/iPhoneStarter-unsigned.ipa"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iPhoneStarter-unsigned-IPA
+          path: iPhoneStarter-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
