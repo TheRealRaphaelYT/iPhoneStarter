@@ -1,4 +1,4 @@
-name: Build iPhone Starter IPA
+name: Build ShareDrop iOS IPA
 
 on:
   workflow_dispatch:
@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   build-ipa:
-    # macOS cloud runner with a recent Xcode/iOS SDK; no local Mac is needed.
     runs-on: macos-26
     steps:
       - name: Check out source
@@ -24,7 +23,7 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Build iOS app (without Apple signing credentials)
+      - name: Build native SwiftUI app (without Apple signing credentials)
         run: |
           set -euo pipefail
           xcodebuild \
@@ -44,16 +43,16 @@ jobs:
           set -euo pipefail
           APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/iPhoneStarter.app"
           test -d "$APP_PATH"
-          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP_PATH/Info.plist"
           mkdir -p "$RUNNER_TEMP/ipa/Payload"
-          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/iPhoneStarter.app"
-          (cd "$RUNNER_TEMP/ipa" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/iPhoneStarter-unsigned.ipa" Payload)
-          test -s "$GITHUB_WORKSPACE/iPhoneStarter-unsigned.ipa"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/ShareDrop.app"
+          (cd "$RUNNER_TEMP/ipa" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/ShareDrop-unsigned.ipa" Payload)
+          test -s "$GITHUB_WORKSPACE/ShareDrop-unsigned.ipa"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: iPhoneStarter-unsigned-IPA
-          path: iPhoneStarter-unsigned.ipa
+          name: ShareDrop-unsigned-IPA
+          path: ShareDrop-unsigned.ipa
           if-no-files-found: error
           retention-days: 14

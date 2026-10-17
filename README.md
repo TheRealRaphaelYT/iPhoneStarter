@@ -1,43 +1,42 @@
-# iPhone Starter — native SwiftUI + cloud IPA build
+# ShareDrop for iPhone — native SwiftUI
 
-This is a starter iPhone app project, not the finished app idea yet. It provides a dark native SwiftUI screen, standard iOS navigation, SF Symbols, and a small Liquid Glass demonstration. Replace the sample home screen with the feature set you decide on.
+ShareDrop is a native SwiftUI iOS app with a dark, custom Liquid Glass-inspired interface. The first iPhone milestone includes:
+
+- A redesigned ShareDrop home screen and native Liquid Glass surfaces.
+- Native Files document picker for documents, PDFs, videos, archives, and other file types.
+- Native Photos picker for selecting up to 12 images at once.
+- Local staging of selected files inside the app's temporary directory.
+- A native iOS share sheet for choosing an available destination.
+- A lightweight Activity screen listing files prepared during the current app session.
+
+## Current limitation — read before testing
+
+This is the first ShareDrop iPhone UI and file-selection milestone. It does **not yet implement ShareDrop-specific nearby-device discovery or direct cross-platform transfer between the iPhone, Android, and Windows app**. For now, the final sharing action opens the iOS system share sheet. The next development milestone is to implement and test the actual device-to-device transfer protocol.
 
 ## Liquid Glass
 
-The project targets iOS 26.0 and uses APIs from the iOS 26 SDK. Standard SwiftUI navigation and controls can adopt Apple's platform appearance; the custom card uses a glass effect explicitly. The actual rendering depends on the iOS version and system settings.
+The project targets iOS 26.0 or later and uses native SwiftUI `glassEffect` and glass button styles. The system controls and materials use Apple's native rendering, while custom surfaces keep a deliberately dark, blue-accented ShareDrop identity. See Apple's SwiftUI documentation for [`glassEffect`](https://developer.apple.com/documentation/swiftui/view/glasseffect(_:in:)).
 
-## Create an IPA from Windows using GitHub Actions
+## Build the unsigned IPA from Windows
 
-The workflow `.github/workflows/build-ipa.yml` builds the app on a GitHub-hosted macOS runner. You do not need Xcode installed on your Windows PC.
+The `.github/workflows/build-ipa.yml` workflow uses a GitHub-hosted macOS runner with Xcode. Xcode does not need to be installed on the Windows PC.
 
-1. Extract this project into a folder, for example `E:\Documents\iPhoneStarter`.
-2. Create a GitHub repository for the project. A public repository is the simplest way to avoid GitHub Actions usage charges, subject to GitHub's current terms. Do not upload secrets or personal signing certificates into the repository.
-3. From PowerShell in the extracted project folder, configure and push the repository (replace the URL with your own repository URL):
+1. Extract this project to a new folder, such as `E:\Documents\ShareDrop-iOS-0.2.0`.
+2. Copy its contents into the existing `TheRealRaphaelYT/iPhoneStarter` repository working copy, or replace the tracked files in a clean clone of that repository. Do not nest the project in another project folder.
+3. Commit and push the changes to `main`.
+4. Open **Actions** in the GitHub repository and monitor **Build ShareDrop iOS IPA**.
+5. After a successful run, download the `ShareDrop-unsigned-IPA` artifact and extract the ZIP artifact to obtain `ShareDrop-unsigned.ipa`.
+6. The workflow creates an **unsigned** IPA. Use the existing signing/installation tool to sign it with the appropriate certificate and provisioning method.
 
-   ```powershell
-   git init
-   git add .
-   git commit -m "Create native iPhone starter app"
-   git branch -M main
-   git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git
-   git push -u origin main
-   ```
+## Important project settings
 
-4. On GitHub, open the repository's **Actions** tab and select **Build iPhone Starter IPA**. Use **Run workflow** if a build has not already started after the push.
-5. When the run finishes, open it and download the artifact named `iPhoneStarter-unsigned-IPA`. Extract the ZIP artifact to find `iPhoneStarter-unsigned.ipa`.
-6. Give that IPA to your existing sideloading/signing tool. This workflow deliberately creates an **unsigned IPA package** because no Apple signing credentials have been provided. The installer must be able to sign/re-sign an unsigned IPA. If it cannot, the project will need the appropriate Apple signing credentials and provisioning profile instead.
+- Display name: `ShareDrop`
+- Xcode project/scheme name: `iPhoneStarter` (kept stable so the existing workflow and project structure continue to work)
+- Bundle identifier: `com.therealraphael.iphonestarter` (kept stable so this build can update the installed starter app when signing identity and installation tool allow it)
+- Deployment target: iOS 26.0+
+- UI framework: SwiftUI
+- Build runner: GitHub Actions / macOS 26
 
-## PowerShell commands are not run automatically
+## Data handling in this milestone
 
-The commands above create Git metadata and upload these project files to the GitHub repository you specify. They do not install anything on the iPhone or modify your Windows settings. Review the repository visibility before pushing.
-
-## Project details
-
-- App display name: `iPhone Starter`
-- Bundle identifier: `com.therealraphael.iphonestarter`
-- Deployment target: iOS 26.0 or newer
-- Framework: SwiftUI (native iOS UI)
-- Build workflow: GitHub Actions / macOS 26 runner
-- Output: `iPhoneStarter-unsigned.ipa`
-
-The IPA has not been built in this Windows environment; GitHub Actions must run the cloud workflow to produce it.
+Selected documents and photos are copied into the app's temporary directory before sharing. This version does not upload them to a ShareDrop server. The chosen destination in Apple's share sheet determines what happens next. Direct ShareDrop transfer, receiving mode, peer discovery, authentication, and persistent transfer history are not implemented yet.
